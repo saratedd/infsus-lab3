@@ -14,7 +14,9 @@ app.use(express.urlencoded({extended: true}));
 
 
 var attributes_korisnik = ['oib', 'isadmin', 'ime', 'prezime', 'email', 'lozinka', 'idzaduzenja']
-var attributes_narudzba = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa', 'opisstatusa']
+var attributes_narudzbe = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa', 'opisstatusa']
+var attributes_narudzba_id = ['datum', 'ime', 'prezime', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa']
+
 
 
 app.get('/narudzbe', async (req, res) => {
@@ -32,7 +34,7 @@ app.get('/narudzbe', async (req, res) => {
     res.render('index', {
         text: 'test',
         rows: result.rows,
-        attributes: attributes_narudzba,
+        attributes: attributes_narudzbe,
         ids: ids,
         // id: result.rows.id
     });
@@ -40,18 +42,36 @@ app.get('/narudzbe', async (req, res) => {
 
 app.get('/narudzbe/:id', async (req, res) => {
     var id = req.params.id
-    var attributes = ['datum', 'oib', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa']
-    let search_sql = format(`select datum, oib, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
+    let search_sql = format(`select datum, ime, prezime, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
                         inner join racun using(idracuna)
                         inner join racunproizvod using (idracuna)
                         join proizvod using (idproizvoda)
                         inner join statusnarudzbe using (idstatusa)
+                        inner join korisnik using(oib)
                         where idnarudzbe = %s`, id)
     var result = await pool.query(search_sql)
 
     res.render('narudzba', {
         id: id,
-        attributes: attributes,
+        attributes: attributes_narudzba_id,
+        rows: result.rows
+    })
+})
+
+app.post('/narudzbe/:id', async (req, res) => {
+    var id = req.params.id
+    let search_sql = `select datum, ime, prezime, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
+                        inner join racun using(idracuna)
+                        inner join racunproizvod using (idracuna)
+                        join proizvod using (idproizvoda)
+                        inner join statusnarudzbe using (idstatusa)
+                        inner join korisnik using(oib)
+                        where idnarudzbe = $1 and (lower(ime) like $2 or lower(prezime) like $2 or lower(naziv) like $2)`
+    var result = await pool.query(search_sql, [req.body.searchterm])
+
+    res.render('narudzba', {
+        id: id,
+        attributes: attributes_narudzba_id,
         rows: result.rows
     })
 })

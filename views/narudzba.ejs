@@ -8,7 +8,18 @@
     <title>LAB3</title>
 </head>
 <body>
-    caoo <%= id %>
+    caoo <%= id %> <br>
+    <a href="/narudzbe">Povratak</a>
+    <br>
+    <form action="/narudzbe/<%= id %>" method="post">
+        <div class="form-group">
+          <label for="searchterm">Pretraživanje po konobaru i nazivu proizvoda na računu: </label>
+          <input type="text" class="form-control" id="searchterm" name="searchterm" aria-describedby="searchterm" placeholder="Čaj">
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary">Pretraži</button>
+        </div>
+    </form>
     <div class="table-div table-div-shown">
         <table class="table table-shown">
             <thead>
