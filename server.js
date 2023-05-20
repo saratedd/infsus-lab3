@@ -14,19 +14,32 @@ app.use(express.urlencoded({extended: true}));
 
 
 var attributes_korisnik = ['oib', 'isadmin', 'ime', 'prezime', 'email', 'lozinka', 'idzaduzenja']
-var attributes_narudzba = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa']
+var attributes_narudzba = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa', 'opisstatusa']
 
 
-app.get('/', async (req, res) => {
-    let search = `select * from narudzba`
-    var result = await pool.query(search)
+app.get('/narudzbe', async (req, res) => {
+    let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa)`
+    let ids_sql = `select idnarudzbe from narudzba`
+    var result = await pool.query(search_sql)
+    var ids_old = await pool.query(ids_sql)
+    var ids = []
+
+    for (id of ids_old.rows) {
+        ids.push(id.idnarudzbe)
+    }
+    console.log(ids)
 
     res.render('index', {
         text: 'test',
         rows: result.rows,
         attributes: attributes_narudzba,
+        ids: ids,
+        // id: result.rows.id
     });
 });
 
+app.get('/narudzbe/:id', (req, res) => {
+    res.render('nestatic')
+})
 
 app.listen(3000);

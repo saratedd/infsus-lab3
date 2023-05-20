@@ -12,19 +12,21 @@
         <table class="table table-shown">
             <thead>
                 <tr>
+                    <th scope="col">#</th>
                     <% for (attr of attributes) {%>
                         <th><%= attr %></th>
                     <% } %> 
                 </tr>
             </thead>
             <tbody>
+                <% var i = 0 %>
                 <% for (row of rows) {%>
                     <tr>
-                        <tr>
-                            <% for (attr of attributes) {%>
-                                <td><%= row[attr]  %></td>
-                            <% } %>
-                        </tr>
+                        <th scope="row"><%= ++i %></th>
+                        <% for (attr of attributes) {%>
+                            <td><%= row[attr] %></td>
+                        <% } %>
+                        <td><a href="/narudzbe/<%= ids[i] %>">Detalji <%= ids %></a></td>
                     </tr>
                 <% } %>
             </tbody>
