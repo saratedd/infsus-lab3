@@ -10,19 +10,8 @@
 <body>
     <nav>
         <a href="/narudzbe">Narudzbe</a>
-        <a href="/korisnici">Korisnici</a>
+        <a href="/korisnici" disable>Korisnici</a>
     </nav>
-    caoo <%= id %> <br>
-    <br>
-    <form action="/narudzbe/<%= id %>" method="post">
-        <div class="form-group">
-          <label for="searchterm">Pretraživanje po nazivu proizvoda na računu: </label>
-          <input type="text" class="form-control" id="searchterm" name="searchterm" aria-describedby="searchterm" placeholder="Čaj">
-        </div>
-        <div>
-            <button type="submit" class="btn btn-primary">Pretraži</button>
-        </div>
-    </form>
     <div class="table-div table-div-shown">
         <table class="table table-shown">
             <thead>

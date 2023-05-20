@@ -13,7 +13,7 @@ app.use(express.static(__dirname));
 app.use(express.urlencoded({extended: true}));
 
 
-var attributes_korisnik = ['oib', 'isadmin', 'ime', 'prezime', 'email', 'lozinka', 'idzaduzenja']
+var attributes_korisnik = ['oib', 'isadmin', 'ime', 'prezime', 'email', 'opiszaduzenja']
 var attributes_narudzbe = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa', 'opisstatusa']
 var attributes_narudzba_id = ['datum', 'ime', 'prezime', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa']
 
@@ -29,7 +29,6 @@ app.get('/narudzbe', async (req, res) => {
     for (id of ids_old.rows) {
         ids.push(id.idnarudzbe)
     }
-    console.log(ids)
 
     res.render('index', {
         text: 'test',
@@ -74,6 +73,16 @@ app.post('/narudzbe/:id', async (req, res) => {
         id: id,
         attributes: attributes_narudzba_id,
         rows: result.rows
+    })
+})
+
+app.get('/korisnici', async (req, res) => {
+    let search_sql = ` select oib, isadmin, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
+    var result = await pool.query(search_sql)
+
+    res.render('sifrarnik', {
+        attributes: attributes_korisnik,
+        rows: result.rows,
     })
 })
 
