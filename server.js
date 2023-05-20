@@ -38,8 +38,22 @@ app.get('/narudzbe', async (req, res) => {
     });
 });
 
-app.get('/narudzbe/:id', (req, res) => {
-    res.render('nestatic')
+app.get('/narudzbe/:id', async (req, res) => {
+    var id = req.params.id
+    var attributes = ['datum', 'oib', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa']
+    let search_sql = format(`select datum, oib, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
+                        inner join racun using(idracuna)
+                        inner join racunproizvod using (idracuna)
+                        join proizvod using (idproizvoda)
+                        inner join statusnarudzbe using (idstatusa)
+                        where idnarudzbe = %s`, id)
+    var result = await pool.query(search_sql)
+
+    res.render('narudzba', {
+        id: id,
+        attributes: attributes,
+        rows: result.rows
+    })
 })
 
 app.listen(3000);

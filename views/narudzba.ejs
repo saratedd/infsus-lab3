@@ -8,6 +8,7 @@
     <title>LAB3</title>
 </head>
 <body>
+    caoo <%= id %>
     <div class="table-div table-div-shown">
         <table class="table table-shown">
             <thead>
@@ -26,7 +27,6 @@
                         <% for (attr of attributes) {%>
                             <td><%= row[attr] %></td>
                         <% } %>
-                        <td><a href="/narudzbe/<%= ids[i-1] %>">Detalji <%= ids %></a></td>
                     </tr>
                 <% } %>
             </tbody>
@@ -34,4 +34,3 @@
     </div>
 </body>
 </html>
-
