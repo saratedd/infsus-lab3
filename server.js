@@ -60,14 +60,15 @@ app.get('/narudzbe/:id', async (req, res) => {
 
 app.post('/narudzbe/:id', async (req, res) => {
     var id = req.params.id
+    var searchtext = '%' + req.body.searchterm.toLowerCase() + '%'
     let search_sql = `select datum, ime, prezime, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
                         inner join racun using(idracuna)
                         inner join racunproizvod using (idracuna)
                         join proizvod using (idproizvoda)
                         inner join statusnarudzbe using (idstatusa)
                         inner join korisnik using(oib)
-                        where idnarudzbe = $1 and (lower(ime) like $2 or lower(prezime) like $2 or lower(naziv) like $2)`
-    var result = await pool.query(search_sql, [req.body.searchterm])
+                        where idnarudzbe = $1 and lower(naziv) like $2`
+    var result = await pool.query(search_sql, [id, searchtext])
 
     res.render('narudzba', {
         id: id,
