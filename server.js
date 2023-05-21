@@ -123,6 +123,14 @@ app.post('/narudzbe', async (req, res) => {
     res.redirect(`/narudzbe/${req.body.id}`);
 })
 
+/** delete order */
+app.post('/narudzbe/:id/delete', async (req, res) => {
+    let delete_sql = `delete from narudzba where idnarudzbe = $1`
+    await pool.query(delete_sql, [req.params.id]);
+
+    res.redirect('/narudzbe');
+});
+
 /** list of users */
 app.get('/korisnici', async (req, res) => {
     let search_sql = ` select oib, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
