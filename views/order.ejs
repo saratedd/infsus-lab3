@@ -85,12 +85,21 @@
                 <button type="submit" class="btn btn-success">Spremi</button>
                 <% if (isEdit) { %>
                     <% let addrDelete = '/narudzbe/' + order.id + '/delete' %>
-                    <form id="addUserForm" action="<%= addrDelete %>" method="post">
+                    <form id="deleteOrderForm" action="<%= addrDelete %>" method="post">
                         <input type="submit" value="Izbriši" class="btn btn-danger">
                     </form>
                 <% } %>
             </form>
         </div>
+    </div>
+    <div class="row">
+        <hr class="solid">
+        <form id="addItemForm">
+            <input type="hidden" name="itemId" value="<%= Math.floor(Math.random() * 1000000000) %>">
+            <label for="item">Proizvod</label>
+            <input type="text" class="form-control" id="item" name="item">
+            <button type="submit" class="btn btn-success">Dodaj</button>
+        </form>
     </div>
 </div>
 </body>

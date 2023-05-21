@@ -18,10 +18,17 @@
   },
   "homepage": "https://github.com/saratedd/infsus-lab3#readme",
   "dependencies": {
+    "assert": "^2.0.0",
+    "chai": "^4.3.7",
+    "cheerio": "^1.0.0-rc.12",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "nodemon": "^2.0.22",
     "pg": "^8.11.0",
-    "pg-format": "^1.0.4"
+    "pg-format": "^1.0.4",
+    "supertest": "^6.3.3"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
   }
 }
