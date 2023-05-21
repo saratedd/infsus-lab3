@@ -22,7 +22,7 @@ app.get('/', async (req, res) => {
 })
 
 app.get('/narudzbe', async (req, res) => {
-    let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa)`
+    let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) inner join racun using (idracuna)`
     const result = await pool.query(search_sql);
 
     res.render('orders', {
@@ -50,8 +50,9 @@ app.get('/narudzbe/add', async (req, res) => {
 
 /** edit order */
 app.get('/narudzbe/:id', async (req, res) => {
-    let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) where idnarudzbe = $1`
+    let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) inner join racun using (idracuna) where idnarudzbe = $1`
     const result = await pool.query(search_sql, [req.params.id]);
+    console.log(result.rows)
     if(!result.length) {
         res.status(404).send('Not found');
         return;
@@ -94,19 +95,27 @@ app.get('/narudzbe/:id', async (req, res) => {
 
 /** save new/old order */
 app.post('/narudzbe', async (req, res) => {
+    console.log(req.body);
     let search_users_sql = `select * from korisnik`
     const users_result = await pool.query(search_users_sql);
 
     let error = {};
 
-    // check if table is number
-    if (isNaN(req.body.table)) {
+    // check if table exists
+    if (!req.body.table) {
+        error.table = 'Broj stola mora biti odabran';
+    } else if (isNaN(req.body.table)) {
         error.table = 'Broj stola mora biti broj';
     }
 
     // check if status exists
     if (!req.body.status) {
         error.status = 'Status mora biti odabran';
+    }
+
+    // check if user exists
+    if (!req.body.user) {
+        error.user = 'Korisnik mora biti odabran';
     }
 
     if (Object.keys(error).length) {
@@ -140,18 +149,33 @@ app.post('/narudzbe', async (req, res) => {
         await pool.query(sql_insert_table, [req.body.table]);
     }
 
-    if (req.body.isEdit) {
+    if (req.body.isEdit === 'true') {
         let update_sql = `update narudzba set idstola = $1, idstatusa = $2 where idnarudzbe = $3`
         await pool.query(update_sql, [req.body.table, statusId, req.body.id]);
+    } else {
+        let racunId = Math.floor(Math.random() * 1000000000);
+        let insert_racun_sql = `insert into racun (idracuna, iznos, datum, oib) values ($1, $2, $3, $4)`
+        await pool.query(insert_racun_sql, [racunId, 0, new Date(), req.body.user]);
+
+        let insert_sql = `insert into narudzba (idnarudzbe, idstola, idstatusa, idracuna) values ($1, $2, $3, $4)`
+        await pool.query(insert_sql, [req.body.id, req.body.table, statusId, racunId]);
     }
+
 
     res.redirect(`/narudzbe/${req.body.id}`);
 })
 
 /** delete order */
 app.post('/narudzbe/:id/delete', async (req, res) => {
+    let sql_get_racunid = `select idracuna from narudzba where idnarudzbe = $1`
+    const racun_result = await pool.query(sql_get_racunid, [req.params.id]);
+
     let delete_sql = `delete from narudzba where idnarudzbe = $1`
     await pool.query(delete_sql, [req.params.id]);
+
+    // delete racun
+    let delete_racun_sql = `delete from racun where idracuna = $1`
+    await pool.query(delete_racun_sql, [racun_result.rows[0].idracuna]);
 
     res.redirect('/narudzbe');
 });

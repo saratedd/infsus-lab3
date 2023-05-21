@@ -41,13 +41,19 @@
                 <div class="mb-3">
                     <label for="user" class="form-label">Zaduženi korisnik</label>
                     <select id="user" name="user">
-                        <% for (user of users) { %>
-                            <option value="<%= user.id %>"
-                            <% if (user['oib'] === order.user) { %> selected
-                                    <% } %>
-                            ><%= user['ime'] + " " + user['prezime'] %></option>
+                        <option value="">--</option>
+                        <%
+                        for (user of users) {
+                            var selected = user['oib'] === order.user ? "selected" : "";
+                        %>
+                            <option value="<%= user['oib'] %>" <%=selected %>><%= user['ime'] + " " + user['prezime'] %></option>
                         <% } %>
                     </select>
+                    <% if (error.user) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <%= error.user %>
+                        </div>
+                    <% } %>
                 </div>
                 <div class="mb-3">
                     <p>Status narudžbe</p>
