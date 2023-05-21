@@ -79,18 +79,27 @@ app.post('/narudzbe/:id', async (req, res) => {
 /** list of users */
 app.get('/korisnici', async (req, res) => {
     let search_sql = ` select oib, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
+    let result = await pool.query(search_sql)
 
     let searchText = req.query.searchText;
+    let result_rows = []
     if(searchText) {
-        // modify sql
+        for (let row of result.rows) {
+            if (row.ime.toLowerCase().includes(searchText.toLowerCase()) ||
+                row.prezime.toLowerCase().includes(searchText.toLowerCase()) ||
+                row.email.toLowerCase().includes(searchText.toLowerCase()) ||
+                row.opiszaduzenja.toLowerCase().includes(searchText.toLowerCase())) {
+                result_rows.push(row)
+            }
+        }
+    } else {
+        result_rows = result.rows
     }
-
-    var result = await pool.query(search_sql);
 
     // <table>
     res.render('users', {
         attributes: attributes_korisnik,
-        rows: result.rows,
+        rows: result_rows,
     });
 })
 
