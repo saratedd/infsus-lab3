@@ -53,7 +53,7 @@ app.get('/narudzbe/:id', async (req, res) => {
     let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) inner join racun using (idracuna) where idnarudzbe = $1`
     const result = await pool.query(search_sql, [req.params.id]);
     console.log(result.rows)
-    if(!result.length) {
+    if(!result.rows.length) {
         res.status(404).send('Not found');
         return;
     }

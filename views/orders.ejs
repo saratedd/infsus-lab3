@@ -50,8 +50,8 @@
                         <% for (attr of attributes) { %>
                             <td><%= row[attr] %></td>
                         <% } %>
-                        <% let addrEdit = '/narudzbe/' + row['id'] %>
-                        <% let addrDelete = '/narudzbe/' + row['id'] + '/delete' %>
+                        <% let addrEdit = '/narudzbe/' + row['idnarudzbe'] %>
+                        <% let addrDelete = '/narudzbe/' + row['idnarudzbe'] + '/delete' %>
                         <td><a href="<%= addrEdit %>" class="btn btn-primary">Pregled</a></td>
                         <td>
                             <form id="addOrderForm" action="<%= addrDelete %>" method="post">
