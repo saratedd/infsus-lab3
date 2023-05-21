@@ -73,17 +73,154 @@ app.post('/narudzbe/:id', async (req, res) => {
         id: id,
         attributes: attributes_narudzba_id,
         rows: result.rows
-    })
+    });
 })
 
+/** list of users */
 app.get('/korisnici', async (req, res) => {
     let search_sql = ` select oib, isadmin, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
-    var result = await pool.query(search_sql)
 
-    res.render('sifrarnik', {
+    let searchText = req.query.searchText;
+    if(searchText) {
+        // modify sql
+    }
+
+    var result = await pool.query(search_sql);
+
+    // <table>
+    res.render('users', {
         attributes: attributes_korisnik,
         rows: result.rows,
+    });
+})
+
+/** new user */
+app.get('/korisnici/add', async (req, res) => {
+    // <form>
+    res.render('user', {
+        attributes: attributes_korisnik,
+        user: {
+            oib: null,
+            name: null,
+            surname: null,
+            email: null,
+            job: null,
+            isAdmin: null,
+        },
+        error : {
+            errorName: null,
+            errorSurname: null,
+            errorEmail: null,
+            errorJob: null,
+            errorOib: null,
+        },
+        isEdit: false,
     })
 })
+
+/** edit user */
+app.get('/korisnici/:oib', async (req, res) => {
+    let search_sql = `select oib, isadmin, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
+    var result = await pool.query(search_sql)
+    let user = result.rows.find(user => user.oib === req.params.oib);
+    // <form>
+    res.render('user', {
+        attributes: attributes_korisnik,
+        user: user,
+        isEdit: true,
+    })
+})
+
+/** save new/old user */
+app.post('/korisnici', async (req, res) => {
+    console.log(req.body);
+    // detected validation error (bad oib and so on)
+    let error = {};
+
+    // check oib
+    if (!req.body.oib) {
+        error.oib = 'OIB je obavezan';
+    } else if (req.body.oib.length !== 11 || isNaN(req.body.oib)) {
+        error.oib = 'OIB mora imati 11 znamenki';
+    } else {
+        // check if oib exists in db
+        let search_sql = `select oib from korisnik where oib = $1`
+        let result = await pool.query(search_sql, [req.body.oib])
+        if (result.rows.length > 0) {
+            error.oib = 'OIB već postoji';
+        }
+    }
+
+    // check name
+    if (!req.body.name) {
+        error.name = 'Ime je obavezno';
+    }
+
+    // check surname
+    if (!req.body.surname) {
+        error.surname = 'Prezime je obavezno';
+    }
+
+    // check email
+    if (!req.body.email) {
+        error.email = 'Email je obavezan';
+    }
+
+    // check job
+    if (!req.body.job) {
+        error.job = 'Zaduženje je obavezno';
+    }
+
+    // if not empty error object
+    if (Object.keys(error).length > 0) {
+        // <form>
+        res.render('user', {
+            attributes: attributes_korisnik,
+            user: req.body,
+            error: {
+                user: req.body,
+                errorOib: error.oib,
+                errorName: error.name,
+                errorSurname: error.surname,
+                errorEmail: error.email,
+                errorJob: error.job,
+            },
+            isEdit: false,
+        });
+        return;
+    }
+
+    // turn isAdmin into boolean
+    let isAdmin = req.body.isAdmin === 'yes';
+
+    // insert into zaduzenje
+    let select_sql = `select idzaduzenja from zaduzenje where opiszaduzenja = $1`
+    let jobId = await pool.query(select_sql, [req.body.job]);
+
+    if (jobId.rows.length === 0) {
+        jobId = Math.floor(Math.random() * 1000000000);
+        let insert_sql = `insert into zaduzenje (idZaduzenja, opiszaduzenja) values ($1, $2)`
+        await pool.query(insert_sql, [jobId, req.body.job]);
+    } else {
+        jobId = jobId.rows[0].idzaduzenja;
+    }
+
+    let search_sql = `select oib from korisnik where oib = $1`
+    let result = await pool.query(search_sql, [req.body.oib])
+    if (result.rows.length > 0) {
+        // update db
+        let update_sql = `update korisnik set ime = $1, prezime = $2, email = $3, idzaduzenja = $4, isadmin = $5 where oib = $6`
+        await pool.query(update_sql, [req.body.name, req.body.surname, req.body.email, jobId, isAdmin, req.body.oib]);
+    } else {
+        // insert into db
+        let insert_sql = `insert into korisnik (oib, ime, prezime, email, idzaduzenja, isadmin) values ($1, $2, $3, $4, $5, $6)`
+        await pool.query(insert_sql, [req.body.oib, req.body.name, req.body.surname, req.body.email, jobId, isAdmin]);
+    }
+
+    // redirect
+    res.redirect(`/korisnici/${req.body.oib}`); // HTTP 303 See Other: https://en.wikipedia.org/wiki/HTTP_303
+});
+
+
 
 app.listen(3000);

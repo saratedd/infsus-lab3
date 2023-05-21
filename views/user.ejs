@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <title>LAB3</title>
+</head>
+<body>
+    <nav>
+        <a href="/narudzbe">Narudzbe</a>
+        <a href="/korisnici" disable>Korisnici</a>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <form id="addUserForm" action="/korisnici" method="post">
+                    <div class="mb-3">
+                        <label for="oib" class="form-label">OIB</label>
+                        <% if (isEdit) { %>
+                            <input type="text" class="form-control" id="oib" name="oib" aria-describedby="oibHelp" value="<%= user.oib %>" readonly>
+                        <% } else { %>
+                            <input type="text" class="form-control" id="oib" name="oib" aria-describedby="oibHelp" value="<%= user.oib %>">
+                        <% } %>
+                        <div id="oibHelp" class="form-text">Must be exactly 11 digits.</div>
+                        <% if (error.errorOib) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error.errorOib %>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Ime</label>
+                        <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>">
+                        <!-- if errorName show error label with error text -->
+                        <% if (error.errorName) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error.errorName %>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="mb-3">
+                        <label for="surname" class="form-label">Prezime</label>
+                        <input type="text" class="form-control" id="surname" name="surname" value="<%= user.surname %>">
+                        <% if (error.errorSurname) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error.errorSurname %>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>">
+                        <% if (error.errorEmail) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error.errorEmail %>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="mb-3">
+                        <label for="job" class="form-label">Opis zaduženja</label>
+                        <input type="text" class="form-control" id="job" name="job" value="<%= user.job %>">
+                        <% if (error.errorJob) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error.errorJob %>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <% if (isEdit) { %>
+                            <% if (user.isAdmin === "yes") { %>
+                                <input type="hidden" id="isAdmin" name="isAdmin" value="no">
+                                <input type="checkbox" class="form-check-input" id="isAdmin" name="isAdmin" value="yes" checked>
+                            <% } else { %>
+                                <input type="hidden" id="isAdmin" name="isAdmin" value="no">
+                                <input type="checkbox" class="form-check-input" id="isAdmin" name="isAdmin" value="yes">
+                            <% } %>
+                        <% } else {%>
+                            <input type="hidden" id="isAdmin" name="isAdmin" value="no">
+                            <input type="checkbox" class="form-check-input" id="isAdmin" name="isAdmin" value="yes">
+                        <% } %>
+                        <label class="form-check-label" for="isAdmin">Admin</label>
+                    </div>
+                    <button type="submit" class="btn btn-success">Spremi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

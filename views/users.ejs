@@ -12,6 +12,14 @@
         <a href="/narudzbe">Narudzbe</a>
         <a href="/korisnici" disable>Korisnici</a>
     </nav>
+    <!-- search form -->
+    <div class="search-div">
+        <form action="/korisnici" method="GET">
+            <input type="text" name="searchText" placeholder="Pretraga">
+            <button type="submit" class="btn btn-primary">Pretraga</button>
+        </form>
+    </div>
+    <a href="/korisnici/add" class="link-success link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Dodaj korisnika</a>
     <div class="table-div table-div-shown">
         <table class="table table-shown">
             <thead>
@@ -19,7 +27,7 @@
                     <th scope="col">#</th>
                     <% for (attr of attributes) {%>
                         <th><%= attr %></th>
-                    <% } %> 
+                    <% } %>
                 </tr>
             </thead>
             <tbody>
@@ -30,6 +38,8 @@
                         <% for (attr of attributes) {%>
                             <td><%= row[attr] %></td>
                         <% } %>
+                        <td><a href="/users/5" class="btn btn-warning">Edit</a></td>
+                        <td><button type="button" class="btn-danger">Edit</button>Izbriši</td>
                     </tr>
                 <% } %>
             </tbody>
