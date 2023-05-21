@@ -1,4 +1,3 @@
-
 const express = require('express');
 const app = express();
 
@@ -18,6 +17,9 @@ var attributes_narudzbe = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa', 'op
 var attributes_narudzba_id = ['datum', 'ime', 'prezime', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa']
 
 
+app.get('/', async (req, res) => {
+    res.render('home', {})
+})
 
 app.get('/narudzbe', async (req, res) => {
     let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa)`
@@ -30,7 +32,7 @@ app.get('/narudzbe', async (req, res) => {
         ids.push(id.idnarudzbe)
     }
 
-    res.render('index', {
+    res.render('narudzbe', {
         text: 'test',
         rows: result.rows,
         attributes: attributes_narudzbe,
@@ -83,7 +85,7 @@ app.get('/korisnici', async (req, res) => {
 
     let searchText = req.query.searchText;
     let result_rows = []
-    if(searchText) {
+    if (searchText) {
         for (let row of result.rows) {
             if (row.ime.toLowerCase().includes(searchText.toLowerCase()) ||
                 row.prezime.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -116,14 +118,7 @@ app.get('/korisnici/add', async (req, res) => {
             password: null,
             job: null,
         },
-        error : {
-            errorName: null,
-            errorSurname: null,
-            errorEmail: null,
-            errorPassword: null,
-            errorJob: null,
-            errorOib: null,
-        },
+        error: {},
         isEdit: false,
     })
 })
@@ -132,6 +127,10 @@ app.get('/korisnici/add', async (req, res) => {
 app.get('/korisnici/:oib', async (req, res) => {
     let search_sql = `select * from korisnik inner join zaduzenje using(idzaduzenja) where oib = $1`
     var result = await pool.query(search_sql, [req.params.oib])
+    if (!result.rows.length) {
+        res.status(404).send('Not found');
+        return;
+    }
     console.log(result.rows[0]);
     // <form>
     res.render('user', {
@@ -144,14 +143,7 @@ app.get('/korisnici/:oib', async (req, res) => {
             password: result.rows[0].lozinka,
             job: result.rows[0].opiszaduzenja,
         },
-        error : {
-            errorName: null,
-            errorSurname: null,
-            errorEmail: null,
-            errorPassword: null,
-            errorJob: null,
-            errorOib: null,
-        },
+        error: {},
         isEdit: true,
     })
 })
@@ -161,20 +153,24 @@ app.post('/korisnici', async (req, res) => {
     console.log(req.body);
     // detected validation error (bad oib and so on)
     let error = {};
+    let oibExists = false;
 
     // check oib
     if (!req.body.oib) {
         error.oib = 'OIB je obavezan';
     } else if (req.body.oib.length !== 11 || isNaN(req.body.oib)) {
         error.oib = 'OIB mora imati 11 znamenki';
-    } /*else {
+    } else {
         // check if oib exists in db
         let search_sql = `select oib from korisnik where oib = $1`
         let result = await pool.query(search_sql, [req.body.oib])
         if (result.rows.length > 0) {
-            error.oib = 'OIB već postoji';
+            oibExists = true;
+            if (!req.body.isEdit) {
+                error.oib = 'OIB već postoji';
+            }
         }
-    }*/
+    }
 
     // check name
     if (!req.body.name) {
@@ -193,7 +189,9 @@ app.post('/korisnici', async (req, res) => {
 
     // check password
     if (!req.body.password) {
-        error.password = 'Lozinka je obavezna';
+        if (!req.body.isEdit) {
+            error.password = 'Lozinka je obavezna';
+        }
     }
 
     // check job
@@ -207,15 +205,7 @@ app.post('/korisnici', async (req, res) => {
         res.render('user', {
             attributes: attributes_korisnik,
             user: req.body,
-            error: {
-                user: req.body,
-                errorOib: error.oib,
-                errorName: error.name,
-                errorSurname: error.surname,
-                errorEmail: error.email,
-                errorPassword: error.password,
-                errorJob: error.job,
-            },
+            error: error,
             isEdit: false,
         });
         return;
@@ -233,12 +223,16 @@ app.post('/korisnici', async (req, res) => {
         jobId = jobId.rows[0].idzaduzenja;
     }
 
-    let search_sql = `select oib from korisnik where oib = $1`
-    let result = await pool.query(search_sql, [req.body.oib])
-    if (result.rows.length > 0) {
-        // update db
-        let update_sql = `update korisnik set ime = $1, prezime = $2, email = $3, lozinka = $4, idzaduzenja = $5, isadmin = $6 where oib = $7`
-        await pool.query(update_sql, [req.body.name, req.body.surname, req.body.email, req.body.password, jobId, 0, req.body.oib]);
+    if (oibExists && req.body.isEdit === 'true') {
+        if (!req.body.password) {
+            // update db
+            let update_sql = `update korisnik set ime = $1, prezime = $2, email = $3, idzaduzenja = $4, isadmin = $5 where oib = $6`
+            await pool.query(update_sql, [req.body.name, req.body.surname, req.body.email, jobId, 0, req.body.oib]);
+        } else {
+            // update db
+            let update_sql = `update korisnik set ime = $1, prezime = $2, email = $3, lozinka = $4, idzaduzenja = $5, isadmin = $6 where oib = $7`
+            await pool.query(update_sql, [req.body.name, req.body.surname, req.body.email, req.body.password, jobId, 0, req.body.oib]);
+        }
     } else {
         // insert into db
         let insert_sql = `insert into korisnik (oib, ime, prezime, email, lozinka, idzaduzenja, isadmin) values ($1, $2, $3, $4, $5, $6, $7)`
@@ -250,7 +244,7 @@ app.post('/korisnici', async (req, res) => {
 });
 
 /** delete user */
-app.get('/korisnici/:oib/delete', async (req, res) => {
+app.post('/korisnici/:oib/delete', async (req, res) => {
     let delete_sql = `delete from korisnik where oib = $1`
     await pool.query(delete_sql, [req.params.oib])
     // redirect
