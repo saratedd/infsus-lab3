@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-var format = require('pg-format');
+const format = require('pg-format');
 const pool = require('./db/pgadmin');
 
 
@@ -12,37 +12,43 @@ app.use(express.static(__dirname));
 app.use(express.urlencoded({extended: true}));
 
 
-var attributes_korisnik = ['oib', 'ime', 'prezime', 'email', 'opiszaduzenja']
-var attributes_narudzbe = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa', 'opisstatusa']
-var attributes_narudzba_id = ['datum', 'ime', 'prezime', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa']
+const attributes_korisnik = ['oib', 'ime', 'prezime', 'email', 'opiszaduzenja'];
+const attributes_narudzbe = ['idnarudzbe', 'idstola', 'datum', 'opisstatusa'];
+const attributes_narudzba_id = ['datum', 'ime', 'prezime', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa'];
 
 
 app.get('/', async (req, res) => {
-    res.render('home', {})
+    res.render('index', {})
 })
 
 app.get('/narudzbe', async (req, res) => {
     let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa)`
-    let ids_sql = `select idnarudzbe from narudzba`
-    var result = await pool.query(search_sql)
-    var ids_old = await pool.query(ids_sql)
-    var ids = []
+    const result = await pool.query(search_sql);
 
-    for (id of ids_old.rows) {
-        ids.push(id.idnarudzbe)
-    }
-
-    res.render('narudzbe', {
-        text: 'test',
+    res.render('orders', {
         rows: result.rows,
         attributes: attributes_narudzbe,
-        ids: ids,
-        // id: result.rows.id
+    });
+});
+
+/** new order */
+app.get('/narudzbe/add', async (req, res) => {
+    let search_sql = `select * from stol`
+    const result = await pool.query(search_sql);
+
+    res.render('order', {
+        order: {
+            id: null,
+            table: null,
+            user: null,
+        },
+        error: {},
+        isEdit: false,
     });
 });
 
 app.get('/narudzbe/:id', async (req, res) => {
-    var id = req.params.id
+    const id = req.params.id;
     let search_sql = format(`select datum, ime, prezime, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
                         inner join racun using(idracuna)
                         inner join racunproizvod using (idracuna)
@@ -50,9 +56,9 @@ app.get('/narudzbe/:id', async (req, res) => {
                         inner join statusnarudzbe using (idstatusa)
                         inner join korisnik using(oib)
                         where idnarudzbe = %s`, id)
-    var result = await pool.query(search_sql)
+    const result = await pool.query(search_sql);
 
-    res.render('narudzba', {
+    res.render('order', {
         id: id,
         attributes: attributes_narudzba_id,
         rows: result.rows
@@ -60,8 +66,8 @@ app.get('/narudzbe/:id', async (req, res) => {
 })
 
 app.post('/narudzbe/:id', async (req, res) => {
-    var id = req.params.id
-    var searchtext = '%' + req.body.searchterm.toLowerCase() + '%'
+    const id = req.params.id;
+    const searchtext = '%' + req.body.searchterm.toLowerCase() + '%';
     let search_sql = `select datum, ime, prezime, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
                         inner join racun using(idracuna)
                         inner join racunproizvod using (idracuna)
@@ -69,7 +75,7 @@ app.post('/narudzbe/:id', async (req, res) => {
                         inner join statusnarudzbe using (idstatusa)
                         inner join korisnik using(oib)
                         where idnarudzbe = $1 and lower(naziv) like $2`
-    var result = await pool.query(search_sql, [id, searchtext])
+    const result = await pool.query(search_sql, [id, searchtext]);
 
     res.render('narudzba', {
         id: id,
@@ -131,7 +137,7 @@ app.get('/korisnici/:oib', async (req, res) => {
         res.status(404).send('Not found');
         return;
     }
-    // console.log(result.rows[0]);
+    console.log(result.rows[0]);
     // <form>
     res.render('user', {
         attributes: attributes_korisnik,
@@ -150,7 +156,7 @@ app.get('/korisnici/:oib', async (req, res) => {
 
 /** save new/old user */
 app.post('/korisnici', async (req, res) => {
-    // console.log(req.body);
+    console.log(req.body);
     // detected validation error (bad oib and so on)
     let error = {};
     let oibExists = false;
