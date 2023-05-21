@@ -120,6 +120,31 @@ app.post('/narudzbe', async (req, res) => {
         return;
     }
 
+    // insert status if opisstatusa doesn't exist
+    let statusId;
+    let sql_check_status = `select idstatusa from statusnarudzbe where opisstatusa = $1`
+    const check_status_result = await pool.query(sql_check_status, [req.body.status]);
+    if (!check_status_result.rows.length) {
+        let sql_insert_status = `insert into statusnarudzbe (idstatusa, opisstatusa) values ($1, $2)`
+        statusId = Math.floor(Math.random() * 1000000000);
+        await pool.query(sql_insert_status, [statusId, req.body.status]);
+    } else {
+        statusId = check_status_result.rows[0].idstatusa;
+    }
+
+    // insert idstola if idstola doesn't exist
+    let sql_check_table = `select * from stol where idstola = $1`
+    const check_table_result = await pool.query(sql_check_table, [req.body.table]);
+    if (!check_table_result.rows.length) {
+        let sql_insert_table = `insert into stol (idstola) values ($1)`
+        await pool.query(sql_insert_table, [req.body.table]);
+    }
+
+    if (req.body.isEdit) {
+        let update_sql = `update narudzba set idstola = $1, idstatusa = $2 where idnarudzbe = $3`
+        await pool.query(update_sql, [req.body.table, statusId, req.body.id]);
+    }
+
     res.redirect(`/narudzbe/${req.body.id}`);
 })
 
