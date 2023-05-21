@@ -249,6 +249,13 @@ app.post('/korisnici', async (req, res) => {
     res.redirect(`/korisnici/${req.body.oib}`); // HTTP 303 See Other: https://en.wikipedia.org/wiki/HTTP_303
 });
 
+/** delete user */
+app.get('/korisnici/:oib/delete', async (req, res) => {
+    let delete_sql = `delete from korisnik where oib = $1`
+    await pool.query(delete_sql, [req.params.oib])
+    // redirect
+    res.redirect(`/korisnici`);
+});
 
 
 app.listen(3000);

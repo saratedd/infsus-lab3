@@ -38,9 +38,10 @@
                         <% for (attr of attributes) {%>
                             <td><%= row[attr] %></td>
                         <% } %>
-                        <% let addr = '/korisnici/' + row['oib'] %>
-                        <td><a href="<%= addr %>" class="btn btn-warning">Uredi</a></td>
-                        <td><a href="/korisnici/delete" class="btn btn-danger">Izbriši</a></td>
+                        <% let addrEdit = '/korisnici/' + row['oib'] %>
+                        <% let addrDelete = '/korisnici/' + row['oib'] + '/delete' %>
+                        <td><a href="<%= addrEdit %>" class="btn btn-warning">Uredi</a></td>
+                        <td><a href="<%= addrDelete %>" class="btn btn-danger">Izbriši</a></td>
                     </tr>
                 <% } %>
             </tbody>
