@@ -59,6 +59,15 @@
                         <% } %>
                     </div>
                     <div class="mb-3">
+                        <label for="password" class="form-label">Lozinka</label>
+                        <input type="password" class="form-control" id="password" name="password" value="<%= user.password %>">
+                        <% if (error.errorPassword) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error.errorPassword %>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="mb-3">
                         <label for="job" class="form-label">Opis zaduženja</label>
                         <input type="text" class="form-control" id="job" name="job" value="<%= user.job %>">
                         <% if (error.errorJob) { %>
@@ -66,21 +75,6 @@
                                 <%= error.errorJob %>
                             </div>
                         <% } %>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <% if (isEdit) { %>
-                            <% if (user.isAdmin === "yes") { %>
-                                <input type="hidden" id="isAdmin" name="isAdmin" value="no">
-                                <input type="checkbox" class="form-check-input" id="isAdmin" name="isAdmin" value="yes" checked>
-                            <% } else { %>
-                                <input type="hidden" id="isAdmin" name="isAdmin" value="no">
-                                <input type="checkbox" class="form-check-input" id="isAdmin" name="isAdmin" value="yes">
-                            <% } %>
-                        <% } else {%>
-                            <input type="hidden" id="isAdmin" name="isAdmin" value="no">
-                            <input type="checkbox" class="form-check-input" id="isAdmin" name="isAdmin" value="yes">
-                        <% } %>
-                        <label class="form-check-label" for="isAdmin">Admin</label>
                     </div>
                     <button type="submit" class="btn btn-success">Spremi</button>
                 </form>

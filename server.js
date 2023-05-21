@@ -13,7 +13,7 @@ app.use(express.static(__dirname));
 app.use(express.urlencoded({extended: true}));
 
 
-var attributes_korisnik = ['oib', 'isadmin', 'ime', 'prezime', 'email', 'opiszaduzenja']
+var attributes_korisnik = ['oib', 'ime', 'prezime', 'email', 'opiszaduzenja']
 var attributes_narudzbe = ['idnarudzbe', 'idstola', 'idracuna', 'idstatusa', 'opisstatusa']
 var attributes_narudzba_id = ['datum', 'ime', 'prezime', 'naziv', 'isvegan', 'kolicina', 'cijena', 'iznos', 'opisstatusa']
 
@@ -78,7 +78,7 @@ app.post('/narudzbe/:id', async (req, res) => {
 
 /** list of users */
 app.get('/korisnici', async (req, res) => {
-    let search_sql = ` select oib, isadmin, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
+    let search_sql = ` select oib, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
 
     let searchText = req.query.searchText;
     if(searchText) {
@@ -104,13 +104,14 @@ app.get('/korisnici/add', async (req, res) => {
             name: null,
             surname: null,
             email: null,
+            password: null,
             job: null,
-            isAdmin: null,
         },
         error : {
             errorName: null,
             errorSurname: null,
             errorEmail: null,
+            errorPassword: null,
             errorJob: null,
             errorOib: null,
         },
@@ -120,13 +121,28 @@ app.get('/korisnici/add', async (req, res) => {
 
 /** edit user */
 app.get('/korisnici/:oib', async (req, res) => {
-    let search_sql = `select oib, isadmin, ime, prezime, email, opiszaduzenja from korisnik inner join zaduzenje using(idzaduzenja)`
-    var result = await pool.query(search_sql)
-    let user = result.rows.find(user => user.oib === req.params.oib);
+    let search_sql = `select * from korisnik inner join zaduzenje using(idzaduzenja) where oib = $1`
+    var result = await pool.query(search_sql, [req.params.oib])
+    console.log(result.rows[0]);
     // <form>
     res.render('user', {
         attributes: attributes_korisnik,
-        user: user,
+        user: {
+            oib: req.params.oib,
+            name: result.rows[0].ime,
+            surname: result.rows[0].prezime,
+            email: result.rows[0].email,
+            password: result.rows[0].lozinka,
+            job: result.rows[0].opiszaduzenja,
+        },
+        error : {
+            errorName: null,
+            errorSurname: null,
+            errorEmail: null,
+            errorPassword: null,
+            errorJob: null,
+            errorOib: null,
+        },
         isEdit: true,
     })
 })
@@ -142,14 +158,14 @@ app.post('/korisnici', async (req, res) => {
         error.oib = 'OIB je obavezan';
     } else if (req.body.oib.length !== 11 || isNaN(req.body.oib)) {
         error.oib = 'OIB mora imati 11 znamenki';
-    } else {
+    } /*else {
         // check if oib exists in db
         let search_sql = `select oib from korisnik where oib = $1`
         let result = await pool.query(search_sql, [req.body.oib])
         if (result.rows.length > 0) {
             error.oib = 'OIB već postoji';
         }
-    }
+    }*/
 
     // check name
     if (!req.body.name) {
@@ -164,6 +180,11 @@ app.post('/korisnici', async (req, res) => {
     // check email
     if (!req.body.email) {
         error.email = 'Email je obavezan';
+    }
+
+    // check password
+    if (!req.body.password) {
+        error.password = 'Lozinka je obavezna';
     }
 
     // check job
@@ -183,15 +204,13 @@ app.post('/korisnici', async (req, res) => {
                 errorName: error.name,
                 errorSurname: error.surname,
                 errorEmail: error.email,
+                errorPassword: error.password,
                 errorJob: error.job,
             },
             isEdit: false,
         });
         return;
     }
-
-    // turn isAdmin into boolean
-    let isAdmin = req.body.isAdmin === 'yes';
 
     // insert into zaduzenje
     let select_sql = `select idzaduzenja from zaduzenje where opiszaduzenja = $1`
@@ -209,12 +228,12 @@ app.post('/korisnici', async (req, res) => {
     let result = await pool.query(search_sql, [req.body.oib])
     if (result.rows.length > 0) {
         // update db
-        let update_sql = `update korisnik set ime = $1, prezime = $2, email = $3, idzaduzenja = $4, isadmin = $5 where oib = $6`
-        await pool.query(update_sql, [req.body.name, req.body.surname, req.body.email, jobId, isAdmin, req.body.oib]);
+        let update_sql = `update korisnik set ime = $1, prezime = $2, email = $3, lozinka = $4, idzaduzenja = $5, isadmin = $6 where oib = $7`
+        await pool.query(update_sql, [req.body.name, req.body.surname, req.body.email, req.body.password, jobId, 0, req.body.oib]);
     } else {
         // insert into db
-        let insert_sql = `insert into korisnik (oib, ime, prezime, email, idzaduzenja, isadmin) values ($1, $2, $3, $4, $5, $6)`
-        await pool.query(insert_sql, [req.body.oib, req.body.name, req.body.surname, req.body.email, jobId, isAdmin]);
+        let insert_sql = `insert into korisnik (oib, ime, prezime, email, lozinka, idzaduzenja, isadmin) values ($1, $2, $3, $4, $5, $6, $7)`
+        await pool.query(insert_sql, [req.body.oib, req.body.name, req.body.surname, req.body.email, req.body.password, jobId, 0]);
     }
 
     // redirect

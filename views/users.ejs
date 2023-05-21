@@ -19,7 +19,7 @@
             <button type="submit" class="btn btn-primary">Pretraga</button>
         </form>
     </div>
-    <a href="/korisnici/add" class="link-success link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Dodaj korisnika</a>
+    <a href="/korisnici/add" class="btn btn-success">Dodaj korisnika</a>
     <div class="table-div table-div-shown">
         <table class="table table-shown">
             <thead>
@@ -38,8 +38,9 @@
                         <% for (attr of attributes) {%>
                             <td><%= row[attr] %></td>
                         <% } %>
-                        <td><a href="/users/5" class="btn btn-warning">Edit</a></td>
-                        <td><button type="button" class="btn-danger">Edit</button>Izbriši</td>
+                        <% let addr = '/korisnici/' + row['oib'] %>
+                        <td><a href="<%= addr %>" class="btn btn-warning">Uredi</a></td>
+                        <td><a href="/korisnici/delete" class="btn btn-danger">Izbriši</a></td>
                     </tr>
                 <% } %>
             </tbody>
