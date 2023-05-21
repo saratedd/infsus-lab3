@@ -8,11 +8,7 @@
     <title>LAB3</title>
 </head>
 <body>
-    <nav>
-        <a href="/narudzbe">Narudzbe</a>
-        <a href="/korisnici">Korisnici</a>
-    </nav>
-    caoo <%= id %> <br>
+    <%- include('header') %>
     <br>
     <form action="/narudzbe/<%= id %>" method="post">
         <div class="form-group">

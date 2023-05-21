@@ -131,7 +131,7 @@ app.get('/korisnici/:oib', async (req, res) => {
         res.status(404).send('Not found');
         return;
     }
-    console.log(result.rows[0]);
+    // console.log(result.rows[0]);
     // <form>
     res.render('user', {
         attributes: attributes_korisnik,
@@ -150,7 +150,7 @@ app.get('/korisnici/:oib', async (req, res) => {
 
 /** save new/old user */
 app.post('/korisnici', async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     // detected validation error (bad oib and so on)
     let error = {};
     let oibExists = false;
