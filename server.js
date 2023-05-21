@@ -37,12 +37,9 @@ app.get('/narudzbe/add', async (req, res) => {
     const result = await pool.query(search_sql);
 
     res.render('order', {
-        order: {
-            id: null,
-            table: null,
-            user: null,
-        },
-        error: {},
+        id: null,
+        attributes: attributes_narudzba_id,
+        rows: result.rows,
         isEdit: false,
     });
 });
