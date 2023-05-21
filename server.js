@@ -25,11 +25,27 @@ app.get('/narudzbe', async (req, res) => {
     let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) inner join racun using (idracuna)`
     const result = await pool.query(search_sql);
 
+    let searchText = req.query.searchText;
+    let result_rows = []
+    if (searchText) {
+        for (let row of result.rows) {
+            if (row.idnarudzbe.toString().includes(searchText) ||
+                row.idstola.toString().includes(searchText) ||
+                row.datum.toString().includes(searchText) ||
+                row.opisstatusa.toString().includes(searchText)) {
+                result_rows.push(row)
+            }
+        }
+    } else {
+        result_rows = result.rows
+    }
+
     res.render('orders', {
-        rows: result.rows,
+        rows: result_rows,
         attributes: attributes_narudzbe,
     });
-});
+})
+;
 
 /** new order */
 app.get('/narudzbe/add', async (req, res) => {
@@ -53,7 +69,7 @@ app.get('/narudzbe/:id', async (req, res) => {
     let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) inner join racun using (idracuna) where idnarudzbe = $1`
     const result = await pool.query(search_sql, [req.params.id]);
     console.log(result.rows)
-    if(!result.rows.length) {
+    if (!result.rows.length) {
         res.status(404).send('Not found');
         return;
     }

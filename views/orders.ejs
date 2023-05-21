@@ -54,7 +54,7 @@
                         <% let addrDelete = '/narudzbe/' + row['idnarudzbe'] + '/delete' %>
                         <td><a href="<%= addrEdit %>" class="btn btn-primary">Pregled</a></td>
                         <td>
-                            <form id="addOrderForm" action="<%= addrDelete %>" method="post">
+                            <form id="deleteOrderForm" action="<%= addrDelete %>" method="post">
                                 <input type="submit" value="Izbriši" class="btn btn-danger">
                             </form>
                         </td>
