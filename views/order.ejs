@@ -43,16 +43,17 @@
                     <select id="user" name="user">
                         <% for (user of users) { %>
                             <option value="<%= user.id %>"
-                            <% if (user.id === order.user) { %> selected
+                            <% if (user['oib'] === order.user) { %> selected
                                     <% } %>
-                            ><%= user.name %></option>
+                            ><%= user['ime'] + " " + user['prezime'] %></option>
+                        <% } %>
                     </select>
                 </div>
                 <div class="mb-3">
                     <p>Status narudžbe</p>
                     <!-- if isEdit mode, check the beforehand checked radio button -->
                     <% if (isEdit) { %>
-                        <% if (user.stats === "open") { %>
+                        <% if (user.status === "open") { %>
                             <input type="radio" id="open" name="status" value="open" checked>
                             <label for="open">Otvorena</label><br>
                             <input type="radio" id="closed" name="status" value="closed">
@@ -69,8 +70,19 @@
                         <input type="radio" id="closed" name="status" value="closed">
                         <label for="closed">Zatvorena</label><br>
                     <% } %>
+                    <% if (error.status) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <%= error.status %>
+                        </div>
+                    <% } %>
                 </div>
                 <button type="submit" class="btn btn-success">Spremi</button>
+                <% if (isEdit) { %>
+                    <% let addrDelete = '/narudzbe/' + order.id + '/delete' %>
+                    <form id="addUserForm" action="<%= addrDelete %>" method="post">
+                        <input type="submit" value="Izbriši" class="btn btn-danger">
+                    </form>
+                <% } %>
             </form>
         </div>
     </div>

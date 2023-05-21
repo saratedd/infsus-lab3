@@ -33,17 +33,46 @@ app.get('/narudzbe', async (req, res) => {
 
 /** new order */
 app.get('/narudzbe/add', async (req, res) => {
-    let search_sql = `select * from stol`
-    const result = await pool.query(search_sql);
+    let search_users_sql = `select * from korisnik`
+    const users_result = await pool.query(search_users_sql);
 
     res.render('order', {
-        id: null,
-        attributes: attributes_narudzba_id,
-        rows: result.rows,
+        order: {
+            id: null,
+            table: null,
+            status: null,
+        },
+        users: users_result.rows,
+        error: {},
         isEdit: false,
     });
 });
 
+/** edit order */
+app.get('/narudzbe/:id', async (req, res) => {
+    let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) where idnarudzbe = $1`
+    const result = await pool.query(search_sql, [req.params.id]);
+    if(!result.length) {
+        res.status(404).send('Not found');
+        return;
+    }
+
+    let search_users_sql = `select * from korisnik`
+    const users_result = await pool.query(search_users_sql);
+
+    res.render('order', {
+        order: {
+            id: result.rows[0].idnarudzbe,
+            table: result.rows[0].idstola,
+            status: result.rows[0].opisstatusa,
+            user: result.rows[0].oib,
+        },
+        users: users_result.rows,
+        error: {},
+        isEdit: true,
+    });
+});
+/*
 app.get('/narudzbe/:id', async (req, res) => {
     const id = req.params.id;
     let search_sql = format(`select datum, ime, prezime, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
@@ -61,24 +90,37 @@ app.get('/narudzbe/:id', async (req, res) => {
         rows: result.rows
     })
 })
+*/
 
-app.post('/narudzbe/:id', async (req, res) => {
-    const id = req.params.id;
-    const searchtext = '%' + req.body.searchterm.toLowerCase() + '%';
-    let search_sql = `select datum, ime, prezime, naziv, isvegan, kolicina, cijena, iznos, opisstatusa from narudzba
-                        inner join racun using(idracuna)
-                        inner join racunproizvod using (idracuna)
-                        join proizvod using (idproizvoda)
-                        inner join statusnarudzbe using (idstatusa)
-                        inner join korisnik using(oib)
-                        where idnarudzbe = $1 and lower(naziv) like $2`
-    const result = await pool.query(search_sql, [id, searchtext]);
+/** save new/old order */
+app.post('/narudzbe', async (req, res) => {
+    let search_users_sql = `select * from korisnik`
+    const users_result = await pool.query(search_users_sql);
 
-    res.render('narudzba', {
-        id: id,
-        attributes: attributes_narudzba_id,
-        rows: result.rows
-    });
+    let error = {};
+
+    // check if table is number
+    if (isNaN(req.body.table)) {
+        error.table = 'Broj stola mora biti broj';
+    }
+
+    // check if status exists
+    if (!req.body.status) {
+        error.status = 'Status mora biti odabran';
+    }
+
+    if (Object.keys(error).length) {
+        res.render('order', {
+            attributes: attributes_narudzba_id,
+            error: error,
+            order: req.body,
+            users: users_result.rows,
+            isEdit: false,
+        });
+        return;
+    }
+
+    res.redirect(`/narudzbe/${req.body.id}`);
 })
 
 /** list of users */
@@ -129,12 +171,11 @@ app.get('/korisnici/add', async (req, res) => {
 /** edit user */
 app.get('/korisnici/:oib', async (req, res) => {
     let search_sql = `select * from korisnik inner join zaduzenje using(idzaduzenja) where oib = $1`
-    var result = await pool.query(search_sql, [req.params.oib])
+    const result = await pool.query(search_sql, [req.params.oib]);
     if (!result.rows.length) {
         res.status(404).send('Not found');
         return;
     }
-    console.log(result.rows[0]);
     // <form>
     res.render('user', {
         attributes: attributes_korisnik,
