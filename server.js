@@ -68,7 +68,7 @@ app.get('/narudzbe/add', async (req, res) => {
 app.get('/narudzbe/:id', async (req, res) => {
     let search_sql = `select * from narudzba inner join statusnarudzbe using (idstatusa) inner join racun using (idracuna) where idnarudzbe = $1`
     const result = await pool.query(search_sql, [req.params.id]);
-    console.log(result.rows)
+    // console.log(result.rows)
     if (!result.rows.length) {
         res.status(404).send('Not found');
         return;
@@ -111,7 +111,7 @@ app.get('/narudzbe/:id', async (req, res) => {
 
 /** save new/old order */
 app.post('/narudzbe', async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     let search_users_sql = `select * from korisnik`
     const users_result = await pool.query(search_users_sql);
 
@@ -267,7 +267,7 @@ app.get('/korisnici/:oib', async (req, res) => {
 
 /** save new/old user */
 app.post('/korisnici', async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     // detected validation error (bad oib and so on)
     let error = {};
     let oibExists = false;
@@ -370,3 +370,5 @@ app.post('/korisnici/:oib/delete', async (req, res) => {
 
 
 app.listen(3000);
+
+module.exports = app
