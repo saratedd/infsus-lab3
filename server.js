@@ -60,6 +60,7 @@ app.get('/narudzbe/add', async (req, res) => {
         },
         users: users_result.rows,
         error: {},
+        products: [],
         isEdit: false,
     });
 });
@@ -74,6 +75,12 @@ app.get('/narudzbe/:id', async (req, res) => {
         return;
     }
 
+    let search_idracuna_sql = `select idracuna from narudzba where idnarudzbe = $1`
+    const idracuna_result = await pool.query(search_idracuna_sql, [req.params.id]);
+
+    let search_products_sql = `select * from narudzba inner join racun using (idracuna) inner join racunproizvod using (idracuna) inner join proizvod using(idproizvoda) where idracuna = $1`
+    const products_result = await pool.query(search_products_sql, [idracuna_result.rows[0].idracuna]);
+
     let search_users_sql = `select * from korisnik`
     const users_result = await pool.query(search_users_sql);
 
@@ -86,6 +93,7 @@ app.get('/narudzbe/:id', async (req, res) => {
         },
         users: users_result.rows,
         error: {},
+        products: products_result.rows,
         isEdit: true,
     });
 });
@@ -140,6 +148,7 @@ app.post('/narudzbe', async (req, res) => {
             error: error,
             order: req.body,
             users: users_result.rows,
+            products: [],
             isEdit: false,
         });
         return;
@@ -168,6 +177,12 @@ app.post('/narudzbe', async (req, res) => {
     if (req.body.isEdit === 'true') {
         let update_sql = `update narudzba set idstola = $1, idstatusa = $2 where idnarudzbe = $3`
         await pool.query(update_sql, [req.body.table, statusId, req.body.id]);
+
+        let search_idracuna_sql = `select idracuna from narudzba where idnarudzbe = $1`
+        let idracuna_result = await pool.query(search_idracuna_sql, [req.body.id]);
+
+        let update_racun_sql = `update racun set oib = $1 where idracuna = $2`
+        await pool.query(update_racun_sql, [req.body.user, idracuna_result.rows[0].idracuna]);
     } else {
         let racunId = Math.floor(Math.random() * 1000000000);
         let insert_racun_sql = `insert into racun (idracuna, iznos, datum, oib) values ($1, $2, $3, $4)`
@@ -194,6 +209,34 @@ app.post('/narudzbe/:id/delete', async (req, res) => {
     await pool.query(delete_racun_sql, [racun_result.rows[0].idracuna]);
 
     res.redirect('/narudzbe');
+});
+
+/** add new product */
+app.post('/proizvod', async (req, res) => {
+    let sql_insert_product = `insert into proizvod (idproizvoda, naziv, cijena, isvegan) values ($1, $2, $3, $4)`
+    await pool.query(sql_insert_product, [req.body.productId, req.body.productName, 0, 0]);
+
+    let sql_get_racunid = `select idracuna from narudzba where idnarudzbe = $1`
+    const racun_result = await pool.query(sql_get_racunid, [req.body.orderId]);
+
+    let sql_insert_racunproizvod = `insert into racunproizvod (idracuna, idproizvoda, kolicina) values ($1, $2, $3)`
+    await pool.query(sql_insert_racunproizvod, [racun_result.rows[0].idracuna, req.body.productId, 1]);
+
+    res.redirect(`/narudzbe/${req.body.orderId}`);
+});
+
+/** delete product */
+app.post('/narudzbe/:orderId/delete/:productId', async (req, res) => {
+    let sql_get_racunid = `select idracuna from narudzba where idnarudzbe = $1`
+    const racun_result = await pool.query(sql_get_racunid, [req.params.orderId]);
+
+    let delete_sql = `delete from racunproizvod where idracuna = $1 and idproizvoda = $2`
+    await pool.query(delete_sql, [racun_result.rows[0].idracuna, req.params.productId]);
+
+    let delete_product_sql = `delete from proizvod where idproizvoda = $1`
+    await pool.query(delete_product_sql, [req.params.productId]);
+
+    res.redirect(`/narudzbe/${req.params.orderId}`);
 });
 
 /** list of users */

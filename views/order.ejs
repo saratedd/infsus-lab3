@@ -46,7 +46,7 @@
                         for (user of users) {
                             var selected = user['oib'] === order.user ? "selected" : "";
                         %>
-                            <option value="<%= user['oib'] %>" <%=selected %>><%= user['ime'] + " " + user['prezime'] %></option>
+                        <option value="<%= user['oib'] %>" <%= selected %>><%= user['ime'] + " " + user['prezime'] %></option>
                         <% } %>
                     </select>
                     <% if (error.user) { %>
@@ -59,22 +59,22 @@
                     <p>Status narudžbe</p>
                     <!-- if isEdit mode, check the beforehand checked radio button -->
                     <% if (isEdit) { %>
-                        <% if (user.status === "open") { %>
+                        <% if (order.status === "open") { %>
                             <input type="radio" id="open" name="status" value="open" checked>
                             <label for="open">Otvorena</label><br>
                             <input type="radio" id="closed" name="status" value="closed">
                             <label for="closed">Zatvorena</label><br>
                         <% } else { %>
-                            <input type="radio" id="open" name="status" value="open">
-                            <label for="open">Otvorena</label><br>
-                            <input type="radio" id="closed" name="status" value="closed" checked>
-                            <label for="closed">Zatvorena</label><br>
+                            <input type="radio" id="open2" name="status" value="open">
+                            <label for="open2">Otvorena</label><br>
+                            <input type="radio" id="closed2" name="status" value="closed" checked>
+                            <label for="closed2">Zatvorena</label><br>
                         <% } %>
                     <% } else { %>
-                        <input type="radio" id="open" name="status" value="open">
-                        <label for="open">Otvorena</label><br>
-                        <input type="radio" id="closed" name="status" value="closed">
-                        <label for="closed">Zatvorena</label><br>
+                        <input type="radio" id="open3" name="status" value="open">
+                        <label for="open3">Otvorena</label><br>
+                        <input type="radio" id="closed3" name="status" value="closed">
+                        <label for="closed3">Zatvorena</label><br>
                     <% } %>
                     <% if (error.status) { %>
                         <div class="alert alert-danger" role="alert">
@@ -83,23 +83,39 @@
                     <% } %>
                 </div>
                 <button type="submit" class="btn btn-success">Spremi</button>
-                <% if (isEdit) { %>
-                    <% let addrDelete = '/narudzbe/' + order.id + '/delete' %>
-                    <form id="deleteOrderForm" action="<%= addrDelete %>" method="post">
-                        <input type="submit" value="Izbriši" class="btn btn-danger">
-                    </form>
-                <% } %>
             </form>
         </div>
     </div>
-    <div class="row">
-        <hr class="solid">
-        <form id="addItemForm">
-            <input type="hidden" name="itemId" value="<%= Math.floor(Math.random() * 1000000000) %>">
-            <label for="item">Proizvod</label>
-            <input type="text" class="form-control" id="item" name="item">
-            <button type="submit" class="btn btn-success">Dodaj</button>
-        </form>
+    <% if (isEdit) { %>
+        <div class="row">
+            <hr class="solid">
+            <form id="addProductForm" action="/proizvod" method="post">
+                <input type="hidden" name="productId" value="<%= Math.floor(Math.random() * 1000000000) %>">
+                <input type="hidden" name="orderId" value="<%= order.id %>">
+                <label for="productName">Proizvod</label>
+                <input type="text" class="form-control" id="productName" name="productName">
+                <button type="submit" class="btn btn-success">Dodaj</button>
+            </form>
+            <% for (p of products) { %>
+                <tr>
+                    <td><%= p['naziv'] %></td>
+                    <% let addrDelete = '/narudzbe/' + p['idnarudzbe'] + '/delete/' + p['idproizvoda'] %>
+                    <td>
+                        <form id="deleteProductForm" action="<%= addrDelete %>" method="post">
+                            <input type="submit" value="Izbriši" class="btn btn-danger">
+                        </form>
+                    </td>
+                </tr>
+            <% } %>
+        </div>
+    <% } %>
+    <div class="row" style="margin-top: 30px">
+        <% if (isEdit) { %>
+            <% let addrDelete = '/narudzbe/' + order.id + '/delete' %>
+            <form id="deleteOrderForm" action="<%= addrDelete %>" method="post">
+                <input type="submit" value="Izbriši narudžbu" class="btn btn-danger">
+            </form>
+        <% } %>
     </div>
 </div>
 </body>
